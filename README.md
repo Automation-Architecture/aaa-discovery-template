@@ -61,11 +61,26 @@ Or just describe what you're doing:
 
 ## Customize to your org
 
-See `CUSTOMIZE.md` for the full list of placeholders. The main things you'll want to set:
-- Your workspace path (where client project repos live)
-- Your GitHub org
-- Your Jira/Atlassian URL
-- Step 13 (client dashboard) — replace with your own client delivery mechanism
+Find-and-replace each placeholder across `SKILL.md` and `references/` before installing:
+
+| Placeholder | What to enter |
+|---|---|
+| `<YOUR_WORKSPACE>` | Root path where client project repos live (e.g. `~/Documents/work`) |
+| `<YOUR_CLIENT_DOCS_DIR>` | Where DOCX/PDF deliverables are saved |
+| `<YOUR_GITHUB_ORG>` | Your GitHub org name |
+| `<YOUR_ORG>.atlassian.net` | Your Jira Cloud subdomain |
+| `<YOUR_DASHBOARD_URL>` | Where clients check project status |
+| `<OPERATOR_EMAIL>` | The email client comms come from |
+| `<Your Organization Name>` | Your org name (appears in the brief template) |
+
+Step 13 (client status artifact) is described generically — replace it with your own client delivery mechanism if you have one. See `CUSTOMIZE.md` for full details.
+
+## Four rules worth knowing
+
+1. **Don't skip steps.** The sequence catches order-dependent gotchas that bite when you freelance it.
+2. **Step 10 is engineer-led.** The assigned engineer drives the architecture grill — not the operator. If the engineer isn't assigned yet, assign them before step 10.
+3. **DOCX deliverables never go in the repo.** They go in `<YOUR_CLIENT_DOCS_DIR>`. The repo holds markdown source only.
+4. **No financial info in tech docs.** Brief, PRD, tech spec, Jira — none of them ever contain pricing or payment details.
 
 ## What's in this repo
 
