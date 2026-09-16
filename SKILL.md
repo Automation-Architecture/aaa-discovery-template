@@ -1,130 +1,149 @@
 ---
 name: aaa-discovery
-description: Walks the operator through the Discovery Phase for a new client engagement — a 15-step sequence that produces a fully scoped, ticketed, and client-informed project before any engineer writes code. Trigger this skill whenever a new client project is starting, when the operator says "kick off discovery", "start a new client", "new client engagement", "spin up a new project", "let's begin discovery", or invokes `/aaa-discovery`. Also trigger when a sales call transcript has just been read and the next step is to start scoping the work, or when the operator references "the 15 steps", "the AAA discovery flow", or "the canonical sequence". This skill orchestrates other skills (grill-me, to-prd) and agents (cto-technical-architect, board-nanny) — invoke it as the entry point so the steps run in the right order, with the right artifacts, in the right places.
+description: Walks the operator through the Automation Architecture (AAA) Discovery Phase — a 13-step sequence that produces a fully scoped, ticketed project before any engineer writes code. Supports two engagement types — client (external) and internal_product (AAA-owned, e.g. AIOS products). Trigger on "kick off discovery", "start a new client", "new client engagement", "new AIOS product", "internal product discovery", "spin up a new project", "let's begin discovery", or `/aaa-discovery`. Also trigger when referencing "the 13 steps", "the AAA discovery flow", or "the canonical sequence". Orchestrates grill-me, to-prd, aaa-client-init, cto-technical-architect, and board-nanny in the right order.
 ---
 
-# Discovery Phase
+# AAA Discovery Phase
 
 ## What this skill does
 
-Discovery is the workflow that turns a sales conversation into a fully ticketed, team-reviewed, client-informed project ready for engineers to build against. It is **15 sequential steps**, run end-to-end, before any code is written. The skill:
+Discovery turns pre-build context into a fully ticketed project ready for engineers. It is **13 sequential steps**, run end-to-end, **before any feature code is written**. The skill:
 
-- Tracks progress through the 15 steps using the operator's task list
-- Hands off to other skills (`/grill-me`, `/to-prd`) and agents (`cto-technical-architect`, `board-nanny`) at the right moments
-- Enforces output-location conventions (markdown in repo, DOCX in `<YOUR_CLIENT_DOCS_DIR>/`, no financial info in tech docs)
-- Catches the order-dependent gotchas that bit the first project that ran this flow (project-key changes, version bumps, draft refreshes)
+- Tracks progress through the 13 steps using the operator's task list
+- Branches on **`engagement_type`** (`client` | `internal_product`) for steps 1–2 and 11–12
+- Hands off to other skills (`/grill-me`, `/to-prd`, `/aaa-client-init`) and agents (`cto-technical-architect`, `board-nanny`) at the right moments
+- Enforces output-location conventions (markdown in repo at `spec/`, DOCX in Onboarding Drive for clients only, no financial info in tech docs)
+- Catches order-dependent gotchas (project-key changes, version bumps, draft refreshes)
 
-The phase ends with the work fully scoped, all tickets created, the client status artifact live, all spec DOCX deliverables generated into `<YOUR_CLIENT_DOCS_DIR>/`, and a client email markdown staged for the operator to send. **Build Phase** (engineers writing code) only begins after step 15.
+Discovery ends with a `#po` digest (step 13). **Build Phase** — per-feature SRS, app code, CDP backend — begins after step 13. See `references/build-phase-handoff.md`.
+
+## Engagement type (set at kickoff)
+
+**Ask first:** Is this a **client engagement** or an **internal product**?
+
+| `engagement_type` | Examples | Steps 11–12 |
+|---|---|---|
+| `client` (default) | Kidneyhood Zendesk Agent | Dashboard + Onboarding Drive DOCX |
+| `internal_product` | AIOS Second Brain, new AIOS product | **Skip** — mark N/A in digest |
+
+Full matrix: `references/engagement-types.md`
 
 ## Throughput target
 
-**5 business days from signed SOW to step-15 complete.** This is the number every run is measured against. The two slack points are step 8 (team feedback ≤ 1 business day) and step 10 (engineer-led architecture grill ≤ 2 business days). If both hold, the rest fits easily. Slip past 7 business days end-to-end → run a post-mortem and document what blocked the flow.
+**48 hours from kickoff to step 13 complete.** For client projects, kickoff = Brad's `#po` Slack message. For internal products, kickoff = operator starts `/aaa-discovery` with repo + product intent docs ready.
 
-## When to invoke
+Main external dependency: step 7 (engineer-led architecture grill ≤ 16 hours from `#po` notification). Slip past 72 hours end-to-end → post-mortem in `docs/throughput-log.md`. Rationale: `docs/why.md`.
 
-Use this skill as the entry point any time a new client engagement starts — whether the operator says it explicitly (`/aaa-discovery`, "kick off discovery") or implicitly (just dropped a sales call transcript and asked what's next). Don't try to do Discovery freehand — the canonical sequence catches things ad-hoc work misses.
+## How discovery is triggered
 
-## What you need from the operator at kickoff
+### Client (`engagement_type=client`)
 
-Gather these before starting Step 1. Many will be visible in the sales call transcript, but ask if not.
+Brad completes three pre-discovery actions:
 
-- **Client business name** (full, used in `<YOUR_CLIENT_DOCS_DIR>/<name>/` paths) — e.g., "Acme Corp"
-- **Client primary contact** (name + email) — e.g., "Jane Smith, jane@acmecorp.com"
-- **Project name** — what we'll call this engagement — e.g., "Support AI Agent"
-- **Slug** — kebab-case, used for repo + dashboard + Jira workflow — e.g., "acme-support-agent"
-- **Client initials directory** — short identifier for the local working dir — e.g., "ac" → `<YOUR_WORKSPACE>/client_projects/ac/`
-- **Slack channels:**
-  - Client-facing: typically `#client-comms`
-  - Team feedback: `#next` (or your team's feedback channel)
-  - **Project sprint channel: `#<slug>-sprint`** (e.g. `#acme-support-agent-sprint`) — this is where the step-10 architecture-grill handoff to the engineer happens. If it doesn't exist yet at kickoff, that's fine — it's typically created during discovery when the project is renamed `*-discovery` → `*-build` → `*-sprint`. Confirm it exists before reaching step 10.
-- **Assigned engineer** — name + Slack user ID. Often not known at kickoff; gets assigned mid-discovery. Must be known by step 10 — that's when they pick up the architecture grill.
-- **Sales call transcript pointer** — Fireflies URL, Granola meeting ID, or path under `docs/client-comms/`
+1. Creates the GitHub repo under `Automation-Architecture/<slug>` (private, with README)
+2. Uploads the signed proposal to Onboarding Shared Drive (`0AOk2FIY4h-9gUk9PVA`) under `<Client Full Business Name>/proposal/`
+3. Sends Slack to `#po` tagging Elsa with client name, slug, repo URL, 48-hour clock start
 
-If anything is unclear, ask before starting. Don't infer slugs or short names — they end up baked into URLs, Jira keys, and dashboard routes.
+### Internal product (`engagement_type=internal_product`)
 
-## The 15 steps
+Operator confirms:
 
-Each step has a dedicated reference file under `references/step-NN-<name>.md` with the full playbook. SKILL.md gives the overview and delegation points; the reference files have the commands, the file paths, the gotchas, and the verification checks.
+1. GitHub repo exists under `Automation-Architecture/<slug>`
+2. Exploratory product docs in repo (`PRODUCT.md`, `spec/product-brief.md`, `docs/APP-STORY.md` — at least one)
+3. Jira project key proposed or confirmed
+4. Assigned engineer identified before step 7
+
+No Onboarding Drive proposal. No client dashboard (steps 11–12 skipped).
+
+## What you need at kickoff
+
+See `references/engagement-types.md` for full checklists per type.
+
+**Always gather:**
+
+- **Project / product name**
+- **Slug** (kebab-case)
+- **GitHub repo URL**
+- **`engagement_type`** — `client` or `internal_product`
+- **Assigned engineer** (name + Slack user ID) — before step 7
+- **Context pointer** — transcripts (client or internal meetings) and/or repo docs
+
+**Client only:** client business name, primary contact, `#<slug>-sprint` channel, signed proposal in Drive.
+
+**Internal only:** optional prototype repos to read (e.g. productize patterns from a client engagement).
+
+If anything is unclear, ask before starting. Don't infer slugs — they bake into URLs, Jira keys, and routes.
+
+## The 13 steps
+
+Each step has a reference file under `references/step-NN-<name>.md`.
 
 | # | Step | Reference | Output |
 |---|------|-----------|--------|
-| 1 | Read sales call meeting transcripts | `references/step-01-read-transcripts.md` | Internal context, no artifact |
-| 2 | Read the signed proposal (formal scope + deliverables) | `references/step-02-read-proposal.md` | Internal context, no artifact |
-| 3 | Write the project brief | `references/step-03-write-brief.md` | `spec/project-brief.md` (v1.0) |
-| 4 | `/grill-me` on the project brief | `references/step-04-grill-me-brief.md` | Locked-in product decisions |
-| 5 | Write the PRD via `/to-prd` | `references/step-05-write-prd.md` | `spec/prd.md` (v1.0) |
-| 6 | Create Jira space + empty board | `references/step-06-create-jira.md` | Jira project + board |
-| 7 | Create GitHub repo with README | `references/step-07-create-github.md` | `<YOUR_GITHUB_ORG>/<slug>` repo |
-| 8 | Send brief + PRD DOCX to `#next` (or your team's feedback channel) for team feedback | `references/step-08-slack-team.md` | Slack post |
-| 9 | Update specs with team feedback | `references/step-09-revise-specs.md` | Brief v1.1, PRD v1.1 |
-| 10 | `/grill-me` on architecture & implementation (**engineer-led**) | `references/step-10-grill-me-arch.md` | Locked-in build decisions |
-| 11 | Write tech spec | `references/step-11-tech-spec.md` | `spec/tech-spec.md` |
-| 12 | Populate Jira board with Epics + Tasks (`board-nanny`) | `references/step-12-board-nanny.md` | Tickets created |
-| 13 | Provision client-facing status artifact | `references/step-13-client-dashboard.md` | Client status URL |
-| 14 | Generate spec DOCX deliverables into `<YOUR_CLIENT_DOCS_DIR>/` | `references/step-14-spec-docx.md` | Brief, PRD, Tech Spec DOCX in `<YOUR_CLIENT_DOCS_DIR>/<Client>/` |
-| 15 | Write client email markdown with dashboard link + all spec DOCX | `references/step-15-client-email.md` | `client-comms/email-to-<client>-discovery-handoff.md` in the repo |
+| 1 | Read context (transcripts / repo docs) | `references/step-01-read-transcripts.md` | Internal context, no artifact |
+| 2 | Read scope source (proposal or product docs) | `references/step-02-read-proposal.md` | Internal context, no artifact |
+| 3 | Write the project brief | `references/step-03-write-brief.md` | `spec/project-brief.md` (v1.0) + DOCX to Drive (**client only**) |
+| 4 | Autonomous product scope grill | `references/step-04-grill-me-brief.md` | `spec/GRILL_SESSION.md` Round 1 complete |
+| 5 | Write the PRD via `/to-prd` | `references/step-05-write-prd.md` | `spec/prd.md` (v1.0) + DOCX to Drive (**client only**) |
+| 6 | Create Jira board + epics | `references/step-06-create-jira.md` | Jira project, epics created |
+| 7 | Architecture grill (engineer-led) | `references/step-07-grill-me-arch.md` | Slack to `#po`; `GRILL_SESSION.md` Round 2; epic updates |
+| 8 | Write tech spec | `references/step-08-tech-spec.md` | `spec/tech-spec.md` + DOCX to Drive (**client only**) |
+| 9 | Discovery document evaluation | `references/step-09-discovery-eval.md` | Scorecard (PASS or WARNs acknowledged) |
+| 10 | Populate Jira board with tasks | `references/step-10-board-nanny.md` | Tasks under epics |
+| 11 | Client dashboard | `references/step-11-client-dashboard.md` | Dashboard live — **client only; skip internal** |
+| 12 | Verify DOCX in Drive | `references/step-12-spec-docx.md` | Three DOCXs confirmed — **client only; skip internal** |
+| 13 | Post discovery digest to `#po` | `references/step-13-discovery-digest.md` | Slack digest; Discovery complete |
 
 ## Progress tracking
 
-Add the 15 steps to the task list at kickoff so the operator can see where they are. Mark each step `in_progress` when you start it and `completed` as soon as it lands — don't batch.
+Add the 13 steps to the task list at kickoff. Mark each `in_progress` when started, `completed` when landed — don't batch. For internal products, mark steps 11–12 completed with note "N/A — internal product".
 
 ## Output-location conventions (non-negotiable)
 
-These match typical operator global rules. Reread them periodically; the temptation to drop files in the wrong place is real.
+- **Markdown source of truth** — project repo `spec/`: `project-brief.md`, `prd.md`, `tech-spec.md`, `GRILL_SESSION.md`
+- **Client transcripts** — Fireflies/Granola MCP (step 1)
+- **Client proposal** — Onboarding Shared Drive `0AOk2FIY4h-9gUk9PVA` (step 2, client only)
+- **Internal product scope** — repo docs: `PRODUCT.md`, `spec/product-brief.md`, `docs/APP-STORY.md` (step 2, internal only)
+- **DOCX deliverables** — pandoc to `/tmp/`, upload via Drive MCP to Onboarding Shared Drive `deliverables/` — **client only**. Never commit DOCX to git.
+- **Memory** — `~/.claude/projects/-Users-brad-Documents-aaa-client-projects/memory/` (client) or project-appropriate path (internal)
+- **No financial information** in any technical doc
 
-- **Markdown source of truth** lives in the project's repo at `<YOUR_WORKSPACE>/client_projects/<initials>/repo/<project>/spec/`. Examples: `spec/project-brief.md`, `spec/prd.md`, `spec/tech-spec.md`.
-- **Pre-Discovery artifacts** (sales call transcripts, signed proposal) live in `<YOUR_CLIENT_DOCS_DIR>/<Client Full Business Name>/` — `Meeting Transcripts/` and `proposal/` subdirectories. Read them in steps 1 and 2.
-- **DOCX deliverables** are generated via pandoc directly into `<YOUR_CLIENT_DOCS_DIR>/<Client Full Business Name>/<area>/`. Never generate a DOCX into the repo first and then copy. If you find a DOCX in the repo, `git rm` it.
-- **Memory** for the project lives at `~/.claude/projects/<project-path-hash>/memory/`.
-- **No financial information in any technical doc** — no budget, no pricing, no payment status, no proposal terms. That belongs in `<YOUR_CLIENT_DOCS_DIR>/<Client>/proposal/` and the sales conversation only. If you find financial info in a tech doc, remove it.
-- **GitHub repos** go under the `<YOUR_GITHUB_ORG>` org, never personal accounts.
-- **Slack channel for team feedback is `#next`** (or your team's feedback channel), separate from the client-facing `#client-comms`.
+## Tools and skills used
 
-## Tools and skills used across the 15 steps
-
-| Tool / skill / agent | Steps where used |
-|----------------------|------------------|
-| Fireflies MCP, Granola MCP, file reads | 1 |
-| `Read` tool on PDF/DOCX in `<YOUR_CLIENT_DOCS_DIR>/<Client>/proposal/` | 2 |
-| Markdown drafting | 3, 5, 9, 11 |
-| `/grill-me` skill | 4, 10 |
-| `/to-prd` skill | 5 |
-| Atlassian MCP (Jira) | 6, 12 |
-| `gh` CLI (GitHub) | 7, 13 |
-| Slack MCP (or operator does it manually) | 8, 10 (engineer handoff for arch grill) |
-| `cto-technical-architect` agent | 11 |
-| `board-nanny` agent | 12 |
-| (your choice — see step 13) | 13 |
-| `pandoc` (markdown → DOCX into `<YOUR_CLIENT_DOCS_DIR>/`) | 14 |
-| Markdown drafting → `client-comms/<file>.md` | 15 |
+| Tool / skill / agent | Steps |
+|----------------------|-------|
+| Fireflies MCP, Granola MCP | 1 |
+| Google Drive MCP | 2 (client), 3/5/8/12 DOCX (client) |
+| `/to-prd` | 5 |
+| Two-agent grill | 4 |
+| Atlassian MCP (Jira) | 6, 7, 10 |
+| `board-nanny` | 6, 10 |
+| Slack MCP | 7, 13 |
+| `cto-technical-architect` | 8 |
+| Eval agent | 9 |
+| `/aaa-client-init` | 11 (client only) |
 
 ## Phase boundary
 
-Discovery ends after step 15 (the operator sends the client email and any client-side responses come back). **Build Phase** then takes over with three high-level steps: Phase 1 build (supervised), burn-in period, Phase 2 launch (autonomous + any remaining channels). Do not roll Build steps into this skill — they're not part of Discovery and they're project-specific.
+Discovery ends after step 13. **Build Phase** follows — see `references/build-phase-handoff.md`. Do not roll Build steps into this skill.
 
-## Common pitfalls (from the first run of this flow)
+## Common pitfalls
 
-These are the things that went sideways on the first project that ran this sequence. Heads-up so you don't repeat them.
-
-> **Note:** The specific project referenced in some examples below (Kidneyhood Zendesk Agent) is from the private AAA internal run. The repo linked is private, but the lessons are universal.
-
-1. **Project key churn.** The operator may recreate the Jira project under a new key after step 5 (e.g., `KZA` → `KHZ`). When this happens, sweep the codebase + memory + sync workflow + DOCX + email draft for stale references. The sweep is non-trivial — keep a checklist.
-2. **DOCX path discipline.** All DOCX generation happens in **step 14**, not ad-hoc throughout the flow. Pandoc writes directly into `<YOUR_CLIENT_DOCS_DIR>/`, never into the repo. Old versioned DOCX files in `<YOUR_CLIENT_DOCS_DIR>/` are deleted on version bump, not left to accumulate. By the time you reach step 15, all DOCX deliverables are current.
-3. **Email lives in the repo, not Gmail.** Step 15 produces a markdown file under `client-comms/` in the project repo — subject options, body draft, attachment paths, and operator notes. The operator copies the body into Gmail (or any sender) and attaches the DOCX files manually. Don't create or maintain a Gmail draft as part of the skill flow. (We learned this on the first run: maintaining a Gmail draft across spec versions added churn without value, since the operator was rewriting the body anyway.)
-4. **Step 8 vs sending to client.** The canonical sequence puts team feedback (`#next`, step 8) **before** sending to the client. The client email is staged in step 15 but only sent after Discovery is complete.
-5. **`/grill-me` is two rounds, not one — and the second is engineer-led.** Round 1 (step 4) tests product scope and the operator drives. Round 2 (step 10) tests architecture and the **assigned engineer** drives. The operator stages a stub in `spec/GRILL_SESSION.md` (questions + recommended starting positions), commits via PR, and drafts a Slack handoff to the project's `*-sprint` channel for the engineer. The engineer either runs `/grill-me` interactively from the project repo or edits the file directly via PR. Skipping round 2 — or running it without the engineer — means architecture defaults get made solo and re-litigated mid-build.
-6. **Version bumps signal substantive feedback.** Brief v1.0 → v1.1 should reflect team feedback (step 8). PRD v1.1 → v1.2 should reflect post-tech-spec corrections, etc. Don't bump for cosmetic edits.
+1. **Project key churn** — sweep codebase + memory + DOCX for stale Jira keys after recreation
+2. **DOCX path discipline** — client only; inline upload at steps 3/5/8; step 12 verifies
+3. **Product grill (step 4) is autonomous; architecture grill (step 7) is engineer-led**
+4. **Version bumps signal substantive changes** — not cosmetic edits
+5. **Don't skip steps 3–10 for internal products** — only 11–12 are N/A
 
 ## How to kick off
 
-When this skill is invoked:
+1. Confirm kickoff inputs + **`engagement_type`**
+2. Read `references/engagement-types.md`
+3. Add 13 steps to task list
+4. Read `references/step-01-read-transcripts.md` and start step 1
+5. Move sequentially — artifacts feed forward
+6. After step 13, read `references/build-phase-handoff.md` before Build Phase
 
-1. Confirm the kickoff inputs (client name, contact, project name, slug, initials, Slack channels, transcript pointer)
-2. Add the 15 steps to the task list
-3. Read `references/step-01-read-transcripts.md` and start step 1
-4. Move sequentially. Don't run steps in parallel — the artifacts feed forward.
-5. After each step, mark it complete and read the next reference file before proceeding.
-
-If the operator wants to deviate (skip a step, run them out of order, change tooling), pause and ask before improvising. Discovery is a sequence; out-of-order work has caused rework on every project where it happened.
+If the operator wants to deviate (skip a step, reorder), pause and ask. Out-of-order work caused rework on prior projects.
 
 Begin.

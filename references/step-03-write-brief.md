@@ -2,13 +2,18 @@
 
 ## Goal
 
-A short, scannable document (~5–10 minutes to read) that captures the problem, the proposed solution, scope, success metrics, risks, and stakeholders. The brief is the input to the first `/grill-me` round and to team feedback in step 8.
+A short, scannable document (~5–10 minutes to read) that captures the problem, the proposed solution, scope, success metrics, risks, and stakeholders. The brief is the input to the first `/grill-me` round (step 4).
 
 ## Where it lives
 
-`<YOUR_WORKSPACE>/client_projects/<initials>/repo/<project>/spec/project-brief.md`
+`~/Documents/aaa/client_projects/<initials>/repo/<project>/spec/project-brief.md`
 
-(If the repo doesn't exist locally yet, the operator can stage it in a temporary working directory; step 7 creates and pushes the repo. Or create it manually with `mkdir -p` and worry about git later.)
+Brad creates the GitHub repo before discovery starts. If you haven't cloned it yet:
+
+```bash
+git clone https://github.com/Automation-Architecture/<slug> \
+  ~/Documents/aaa/client_projects/<initials>/repo/<slug>
+```
 
 ## Structure
 
@@ -20,7 +25,7 @@ Use this structure as a starting point. Adapt as needed for the project, but kee
 **Client:** <First name> / <Business name>
 **Website:** <client domain>
 **Date:** <YYYY-MM-DD> (v1.0)
-**Prepared by:** <Your Organization Name>
+**Prepared by:** Automation Architecture AI
 
 ---
 
@@ -82,7 +87,7 @@ Table: layer, choice, notes. One line per architectural concern (backend, LLM, v
 
 ### Module Breakdown (deep, independently testable)
 
-Numbered list of modules with one-line descriptions.
+Numbered list of modules with one-line descriptions. Use the module concept from the operator's coding-standards skill — "deep modules with simple stable interfaces" — not shallow wrappers.
 
 ---
 
@@ -100,34 +105,45 @@ Numbered list of things the client needs to confirm or provide before/during bui
 
 ## Discovery Phase
 
-Reference the canonical 15-step sequence. Mark steps complete as we move through them.
+Reference the canonical 13-step sequence. Mark steps complete as we move through them.
 
 | # | Step | Status |
 |---|------|--------|
-| 1 | Read sales call transcripts | ✅ Done |
-| 2 | Read signed proposal | ✅ Done |
+| 1 | Find and read the sales call transcript | ✅ Done |
+| 2 | Read the signed proposal | ✅ Done |
 | 3 | Write project brief | 🔄 In progress |
 | ... | ... | ... |
-
-## Build Phase
-
-The three-step build (Phase 1 supervised, burn-in, Phase 2 launch).
 ```
 
 ## Don't do this
 
-- **Do not include financial information.** No budget numbers, no pricing, no payment status, no proposal terms. Tech docs are technical. Financial content belongs in `<YOUR_CLIENT_DOCS_DIR>/<Client>/proposal/`. Repeat: do not put a Budget line in the brief.
+- **Do not include financial information.** No budget numbers, no pricing, no payment status, no proposal terms. That's a global rule. Tech docs are technical. Financial content belongs in the proposal on the Onboarding Shared Drive and the sales conversation only. Repeat: do not put a Budget line in the brief.
 - **Do not pre-bake "open questions" you can answer.** The brief should already reflect what the operator and you know. Genuine open items go in the dedicated section; don't pad it.
 - **Do not duplicate the PRD.** The brief is the 10-minute version. The PRD is the 30-minute version. If you find yourself listing 39 user stories in the brief, stop and move them to the PRD.
+
+## Generate DOCX and upload to Drive
+
+Once the brief is approved, generate a DOCX and upload it immediately — don't wait for step 12.
+
+```bash
+pandoc spec/project-brief.md \
+  -o /tmp/<slug>-Brief-v1.0.docx \
+  --from markdown --to docx
+```
+
+Upload via Google Drive MCP (`mcp__claude_ai_Google_Drive__create_file`) to the Onboarding Shared Drive (`0AOk2FIY4h-9gUk9PVA`) → `<Client Full Business Name>/deliverables/`. Filename: `<Client>-<Project>-Brief-v1.0.docx`.
+
+If the `deliverables/` subfolder doesn't exist yet, create it first (folder type) and save the folder ID to project memory — steps 5 and 8 reuse it.
 
 ## Verify before moving on
 
 - File at the correct path
 - All sections present
 - No financial info
-- Discovery + Build phase tables included with steps 1–2 marked done and step 3 in progress
+- Discovery phase table included with steps 1–2 marked done, step 3 in progress
 - Module breakdown roughly matches what the architecture sketch implies
+- DOCX uploaded to Onboarding Shared Drive `<Client Full Business Name>/deliverables/`
 
 ## Done when
 
-The brief reads well end-to-end and the operator has approved it (or you've made it good enough that the operator nods at it without asking for changes). Move to step 4.
+The brief reads well end-to-end, the operator has approved it, and the DOCX is in Drive. Move to step 4.
