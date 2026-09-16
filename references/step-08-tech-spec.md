@@ -1,4 +1,4 @@
-# Step 11 — Write the tech spec
+# Step 8 — Write the tech spec
 
 ## Goal
 
@@ -26,7 +26,7 @@ The agent's job is to synthesize, not to redecide. If it tries to relitigate som
 
 ## Where it lives
 
-`<YOUR_WORKSPACE>/client_projects/<initials>/repo/<project>/spec/tech-spec.md`
+`~/Documents/aaa/client_projects/<initials>/repo/<project>/spec/tech-spec.md`
 
 ## Structure (typical)
 
@@ -54,7 +54,7 @@ The agent will follow its own template, but a complete tech spec normally includ
   - For the main flows: end-to-end with all actors
 
 ## Concrete Tech Choices
-  - Final picks (locked by step 10): runtime versions, library versions, service tiers
+  - Final picks (locked by step 8): runtime versions, library versions, service tiers
 
 ## Deployment
   - Infra-as-code or stepwise commands
@@ -84,20 +84,26 @@ The agent will follow its own template, but a complete tech spec normally includ
    - **No reintroduced scope** the PRD declared out
    - **Concrete versions** (e.g., "Python 3.12", "Postgres 16", "Pinecone serverless tier") — not "TBD"
 2. Commit and push to the project repo
-3. Generate the DOCX into `<YOUR_CLIENT_DOCS_DIR>/<Client>/prd/<slug>/<Client>-<Project>-Tech-Spec-v1.0.docx` — the client may want to see this too (step 15's email includes it)
+3. Generate the DOCX and upload to Drive:
+   ```bash
+   pandoc spec/tech-spec.md \
+     -o /tmp/<slug>-Tech-Spec-v1.0.docx \
+     --from markdown --to docx
+   ```
+   Then upload via Google Drive MCP (`mcp__claude_ai_Google_Drive__create_file`) to the Onboarding Shared Drive (`0AOk2FIY4h-9gUk9PVA`) → `<Client Full Business Name>/deliverables/`. Filename: `<Client>-<Project>-Tech-Spec-v1.0.docx`.
 
 ## Don't do this
 
-- **Don't let the tech spec contradict the PRD.** They're co-authored documents. If the tech spec needs to deviate, update the PRD too (and consider whether you need to re-run step 9).
+- **Don't let the tech spec contradict the PRD.** They're co-authored documents. If the tech spec needs to deviate, update the PRD too (and consider whether you need to re-run step 8).
 - **Don't put implementation details in the brief or PRD.** Specific versions, library choices, service tiers go here, not in the upstream docs.
 
 ## Verify before moving on
 
 - `spec/tech-spec.md` exists, committed
-- DOCX in `<YOUR_CLIENT_DOCS_DIR>/`
+- DOCX uploaded to Onboarding Shared Drive `<Client Full Business Name>/deliverables/`
 - Module names + data flow match the PRD
 - No financial info
 
 ## Done when
 
-Tech spec is written and committed. Move to step 12.
+Tech spec is written and committed. Move to step 9.

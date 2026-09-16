@@ -1,29 +1,21 @@
 # Getting Started with aaa-discovery
 
-A Claude Code skill that runs you through a 15-step Discovery Phase — the sequence that turns a signed client engagement into a fully scoped, ticketed, client-ready project before any code is written.
+A Claude Code skill that runs you through a **13-step Discovery Phase** — scoped, ticketed, build-ready projects before any feature code is written.
 
-**Target:** ≤ 5 business days from signed SOW to step 15 complete.
+Supports **`client`** (external) and **`internal_product`** (org-owned) engagement types.
+
+**Target:** ≤ 48 hours from kickoff to step 13 complete.
 
 ---
 
 ## Install (5 minutes)
 
-**1. Download** the latest release zip:
-`https://github.com/Automation-Architecture/aaa-discovery-template/releases/latest`
+**1. Download** the latest release zip from this repo's releases page.
 
-**2. Customize** — open `CUSTOMIZE.md` and find-and-replace each placeholder across `SKILL.md` and `references/`:
-
-| Placeholder | What to enter |
-|---|---|
-| `<YOUR_WORKSPACE>` | Root path where client project repos live (e.g. `~/Documents/work`) |
-| `<YOUR_CLIENT_DOCS_DIR>` | Where DOCX/PDF deliverables are saved |
-| `<YOUR_GITHUB_ORG>` | Your GitHub org name |
-| `<YOUR_ORG>.atlassian.net` | Your Jira Cloud subdomain |
-| `<YOUR_DASHBOARD_URL>` | Where clients check project status |
-| `<OPERATOR_EMAIL>` | The email client comms come from |
-| `<Your Organization Name>` | Your org name (used in the brief template) |
+**2. Customize** — open `CUSTOMIZE.md` and replace placeholders in `SKILL.md` and `references/`.
 
 **3. Install:**
+
 ```bash
 ./install.sh
 ```
@@ -34,61 +26,45 @@ A Claude Code skill that runs you through a 15-step Discovery Phase — the sequ
 
 ## Run it
 
-Open Claude Code in your project directory:
-
 ```
 /aaa-discovery
 ```
 
-Or just describe the situation — Claude will recognize the trigger:
-
-> "I just wrapped a sales call with a new client. Let's kick off discovery."
-
-Claude will ask for kickoff inputs (client name, slug, assigned engineer, transcript location), add all 15 steps to the task list, and walk through them sequentially.
+Claude will ask for kickoff inputs including **`engagement_type`** (`client` or `internal_product`), add all 13 steps to the task list, and walk through them sequentially.
 
 ---
 
-## The 15 steps
+## The 13 steps
 
 | # | Step | Produces |
 |---|------|----------|
-| 1 | Read sales call transcripts | Internal context |
-| 2 | Read signed proposal | Internal context |
+| 1 | Read discovery context | Internal context |
+| 2 | Read scope source | Internal context |
 | 3 | Write project brief | `spec/project-brief.md` |
-| 4 | `/grill-me` on brief — product scope (operator-led) | Locked product decisions |
+| 4 | Product scope grill (autonomous) | `GRILL_SESSION.md` Round 1 |
 | 5 | Write PRD via `/to-prd` | `spec/prd.md` |
-| 6 | Create Jira project + board | Jira project |
-| 7 | Create GitHub repo | `<org>/<slug>` |
-| 8 | Send brief + PRD to team for feedback | Slack post to team channel |
-| 9 | Revise specs with team feedback | Brief v1.1, PRD v1.1 |
-| 10 | `/grill-me` on architecture — **engineer-led** | Locked architecture decisions |
-| 11 | Write tech spec | `spec/tech-spec.md` |
-| 12 | Populate Jira board via `board-nanny` | Epics + Tasks |
-| 13 | Provision client-facing status artifact | Client URL |
-| 14 | Generate DOCX deliverables | Brief, PRD, Tech Spec DOCX |
-| 15 | Write client handoff email | `client-comms/email-to-<client>-handoff.md` |
+| 6 | Create Jira board + epics | Jira project |
+| 7 | Architecture grill (**engineer-led**) | `GRILL_SESSION.md` Round 2 |
+| 8 | Write tech spec | `spec/tech-spec.md` |
+| 9 | Discovery eval | Scorecard |
+| 10 | Populate Jira (`board-nanny`) | Tasks |
+| 11 | Client dashboard (`client` only) | Dashboard URL |
+| 12 | Verify DOCX in Drive (`client` only) | Three DOCXs |
+| 13 | Post digest to `#po` | Discovery complete |
+
+For `internal_product`, steps 11–12 are skipped (N/A in digest).
 
 ---
 
 ## Four rules that matter
 
-1. **Don't skip steps.** The sequence catches order-dependent gotchas that bite when you freelance it.
-2. **Step 10 is engineer-led.** The assigned engineer drives the architecture grill — not the operator. If the engineer isn't assigned yet, assign them before step 10.
-3. **DOCX deliverables never go in the repo.** They go in your client docs directory. The repo holds markdown source only.
-4. **No financial info in tech docs.** Brief, PRD, tech spec, Jira — none of them ever contain pricing or payment details.
+1. **Don't skip steps 3–10.** Order-dependent gotchas bite when you freelance it.
+2. **Step 7 is engineer-led.** Assign the engineer before the architecture grill.
+3. **DOCX never goes in the repo** (client engagements only).
+4. **No financial info in tech docs.**
 
 ---
 
-## Other skills this needs
+## After discovery
 
-Install these separately for the full stack:
-
-| Skill | Used in |
-|---|---|
-| `/grill-me` | Steps 4, 10 |
-| `/to-prd` | Step 5 |
-| `board-nanny` agent | Step 12 |
-
----
-
-Full reference: `SKILL.md` and the `references/` folder.
+See `references/build-phase-handoff.md` for Build Phase (per-feature SRS, implementation).

@@ -1,6 +1,8 @@
 # aaa-discovery — Discovery Phase Skill for Claude Code
 
-A [Claude Code](https://claude.ai/code) skill that walks an operator through a 15-step Discovery Phase — the structured sequence that turns a closed sale into a fully ticketed, team-reviewed, client-informed project before any engineer writes code.
+A [Claude Code](https://claude.ai/code) skill that walks an operator through a **13-step Discovery Phase** — the structured sequence that turns pre-build context into a fully scoped, ticketed project before any engineer writes code.
+
+Supports two **engagement types**: `client` (external) and `internal_product` (org-owned products).
 
 Built by [Automation Architecture AI](https://automationarchitecture.ai). Shared as a template for other agencies and consultancies running AI engineering engagements.
 
@@ -8,97 +10,81 @@ Built by [Automation Architecture AI](https://automationarchitecture.ai). Shared
 
 ## What it does
 
-Discovery is the workflow that answers: *what exactly are we building, and is everyone aligned before we write a line of code?*
+Discovery answers: *what exactly are we building, and is everyone aligned before we write a line of code?*
 
 The skill:
-- Tracks progress through 15 sequential steps using Claude Code's task list
+- Tracks progress through **13 sequential steps** using Claude Code's task list
+- Branches on **`engagement_type`** for steps 1–2 and 11–12
 - Hands off to other skills (`/grill-me`, `/to-prd`) and agents (`cto-technical-architect`, `board-nanny`) at the right moments
-- Enforces output-location conventions so DOCX deliverables, markdown sources, and financial docs never end up in the wrong place
-- Catches the order-dependent gotchas that come up on every project when you don't run this sequence
+- Enforces output-location conventions (markdown in `spec/`, DOCX to client Drive for `client` only)
+- Documents **Build Phase** handoff (per-feature SRS via ba-kit) after step 13
 
-**The phase ends with:** work fully scoped, all tickets created, client dashboard live, spec DOCX deliverables generated, and a client handoff email staged. Build phase only begins after step 15.
+**The phase ends with:** work fully scoped, Jira populated, `#po` digest sent. Build phase begins after step 13.
 
-## The 15 steps
+## Engagement types
+
+| Type | When | Steps 11–12 |
+|---|---|---|
+| `client` | External client engagement | Client dashboard + DOCX to Drive |
+| `internal_product` | Org-owned product (e.g. AIOS) | **Skip** — N/A in digest |
+
+See `references/engagement-types.md` for full matrix.
+
+## The 13 steps
 
 | # | Step | Output |
 |---|------|--------|
-| 1 | Read sales call transcripts | Internal context |
-| 2 | Read signed proposal | Internal context |
+| 1 | Read discovery context | Internal context |
+| 2 | Read scope source (proposal or product docs) | Internal context |
 | 3 | Write project brief | `spec/project-brief.md` |
-| 4 | `/grill-me` on brief (product scope) | Locked product decisions |
+| 4 | Product scope grill (autonomous) | `spec/GRILL_SESSION.md` Round 1 |
 | 5 | Write PRD via `/to-prd` | `spec/prd.md` |
-| 6 | Create Jira space + board | Jira project + board |
-| 7 | Create GitHub repo | `<YOUR_GITHUB_ORG>/<slug>` |
-| 8 | Send brief + PRD to team for feedback | Slack post |
-| 9 | Update specs with team feedback | Brief v1.1, PRD v1.1 |
-| 10 | `/grill-me` on architecture (**engineer-led**) | Locked architecture decisions |
-| 11 | Write tech spec | `spec/tech-spec.md` |
-| 12 | Populate Jira board (`board-nanny`) | Tickets created |
-| 13 | Provision client-facing status artifact | Client URL |
-| 14 | Generate spec DOCX deliverables | Brief, PRD, Tech Spec DOCX |
-| 15 | Write client handoff email markdown | `client-comms/email-to-<client>-handoff.md` |
+| 6 | Create Jira board + epics | Jira project + epics |
+| 7 | Architecture grill (**engineer-led**) | `GRILL_SESSION.md` Round 2 |
+| 8 | Write tech spec | `spec/tech-spec.md` |
+| 9 | Discovery document evaluation | Scorecard |
+| 10 | Populate Jira board (`board-nanny`) | Tasks created |
+| 11 | Client dashboard (`client` only) | Dashboard live |
+| 12 | Verify DOCX in Drive (`client` only) | Three DOCXs confirmed |
+| 13 | Post discovery digest to `#po` | Discovery complete |
 
 ## Install
 
-1. **Download** — [latest release](https://github.com/Automation-Architecture/aaa-discovery-template/releases/latest) → `aaa-discovery-template.zip` → unzip
-2. **Customize** — open `CUSTOMIZE.md` and replace each placeholder with your org's values
+1. **Download** — [latest release](https://github.com/Automation-Architecture/aaa-discovery-template/releases/latest) → unzip
+2. **Customize** — open `CUSTOMIZE.md` and replace placeholders
 3. **Install** — `./install.sh`
 4. **Reload** — restart Claude Code
 
-The skill installs to `~/.claude/skills/aaa-discovery/` — Claude Code's global skill directory.
+Installs to `~/.claude/skills/aaa-discovery/`.
 
 ## Invoke
-
-From any project directory in Claude Code:
 
 ```
 /aaa-discovery
 ```
 
-Or just describe what you're doing:
-
-> "I just got off a discovery call with a new client. Let's kick off discovery."
+Set `engagement_type` at kickoff: `client` or `internal_product`.
 
 ## Customize to your org
 
-Find-and-replace each placeholder across `SKILL.md` and `references/` before installing:
-
-| Placeholder | What to enter |
-|---|---|
-| `<YOUR_WORKSPACE>` | Root path where client project repos live (e.g. `~/Documents/work`) |
-| `<YOUR_CLIENT_DOCS_DIR>` | Where DOCX/PDF deliverables are saved |
-| `<YOUR_GITHUB_ORG>` | Your GitHub org name |
-| `<YOUR_ORG>.atlassian.net` | Your Jira Cloud subdomain |
-| `<YOUR_DASHBOARD_URL>` | Where clients check project status |
-| `<OPERATOR_EMAIL>` | The email client comms come from |
-| `<Your Organization Name>` | Your org name (appears in the brief template) |
-
-Step 13 (client status artifact) is described generically — replace it with your own client delivery mechanism if you have one. See `CUSTOMIZE.md` for full details.
+See `CUSTOMIZE.md` for placeholders (`<YOUR_GITHUB_ORG>`, Jira subdomain, Drive paths, etc.).
 
 ## Four rules worth knowing
 
-1. **Don't skip steps.** The sequence catches order-dependent gotchas that bite when you freelance it.
-2. **Step 10 is engineer-led.** The assigned engineer drives the architecture grill — not the operator. If the engineer isn't assigned yet, assign them before step 10.
-3. **DOCX deliverables never go in the repo.** They go in `<YOUR_CLIENT_DOCS_DIR>`. The repo holds markdown source only.
-4. **No financial info in tech docs.** Brief, PRD, tech spec, Jira — none of them ever contain pricing or payment details.
+1. **Don't skip steps 3–10.** Order-dependent gotchas bite when you freelance it.
+2. **Step 7 is engineer-led.** Assign the engineer before the architecture grill.
+3. **DOCX never goes in the repo** (`client` engagements only).
+4. **No financial info in tech docs.**
 
 ## What's in this repo
 
 | Path | What it is |
 |---|---|
-| `SKILL.md` | The skill entry point — 15-step overview, conventions, pitfalls |
-| `references/` | One reference file per step with full playbook, commands, gotchas |
-| `templates/` | Bundled templates (project brief, grill session, tech spec) |
-| `install.sh` | Installs skill to `~/.claude/skills/aaa-discovery/` |
-| `CUSTOMIZE.md` | All placeholders and what to replace them with |
-
-## Related skills
-
-This skill orchestrates three other skills. Install them separately if you want the full stack:
-
-- [`grill-me`](https://github.com/Automation-Architecture/grill-me) — structured interview skill for stress-testing plans
-- [`to-prd`](https://github.com/Automation-Architecture/to-prd) — converts a grill session into a PRD
-- [`board-nanny`](https://github.com/Automation-Architecture/board-nanny) — populates a Jira board from a tech spec
+| `SKILL.md` | Skill entry point — 13-step overview, engagement types, conventions |
+| `references/` | One reference file per step + `engagement-types.md`, `build-phase-handoff.md` |
+| `templates/` | Project brief, grill session, tech spec |
+| `SYNC.md` | How Automation Architecture syncs from `claude-skills-shelf` |
+| `install.sh` | Installs to `~/.claude/skills/aaa-discovery/` |
 
 ## License
 
