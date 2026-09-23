@@ -28,8 +28,14 @@ After merging any PR that changes this skill in `claude-skills-shelf`.
      --exclude '.github' \
      "${SHELF}/SKILL.md" "${SHELF}/docs" "${SHELF}/references" "${SHELF}/templates" "${SHELF}/SYNC.md" \
      "${TARGET}/"
+   # The template ships no workflows; rsync --delete won't remove an existing .github/.
+   rm -rf "${TARGET}/.github"
    ```
-   Preserves in template: `install.sh`, `README.md`, `CUSTOMIZE.md`, `ONBOARDING.md`, `.github/`
+   Preserves in template: `install.sh`, `README.md`, `CUSTOMIZE.md`, `ONBOARDING.md`
+
+   The template is public and deliberately ships no `.github/` workflows. The shelf's
+   `.github/` holds org-internal workflows (org secrets, the org-level sweeper,
+   private repo names in comments); AAA repos get them from `Automation-Architecture/.github`.
 
 3. Review diff in the template repo — packaging files (`install.sh`, `README.md`, `CUSTOMIZE.md`, `ONBOARDING.md`) are preserved; skill content is overwritten from shelf.
 
