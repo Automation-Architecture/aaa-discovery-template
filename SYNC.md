@@ -28,6 +28,8 @@ After merging any PR that changes this skill in `claude-skills-shelf`.
      --exclude '.github' \
      "${SHELF}/SKILL.md" "${SHELF}/docs" "${SHELF}/references" "${SHELF}/templates" "${SHELF}/SYNC.md" \
      "${TARGET}/"
+   # The template ships no workflows; rsync --delete won't remove an existing .github/.
+   rm -rf "${TARGET}/.github"
    ```
    Preserves in template: `install.sh`, `README.md`, `CUSTOMIZE.md`, `ONBOARDING.md`
 
