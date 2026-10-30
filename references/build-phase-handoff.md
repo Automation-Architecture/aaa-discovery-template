@@ -22,7 +22,7 @@ Discovery does **not** produce per-feature binding specs or application code.
 
 ## Build Phase chain (product repos)
 
-Typical AIOS product repo (e.g. `aios-second-brain`):
+Typical AIOS product repo (e.g. `aios-iq-app`):
 
 ```
 spec/prd.md epics
@@ -42,7 +42,7 @@ app/ (frontend) + docs/be-quest/ → aios-cdp/apps/{product}/ (backend)
 
 ## ba-kit setup (first Build Phase task)
 
-Vendor from [`aaa-aiosiq`](https://github.com/Automation-Architecture/aaa-aiosiq) if not already present:
+Vendor from [`aios-signals-app`](https://github.com/Automation-Architecture/aios-signals-app) if not already present:
 
 1. Copy `.claude/` (skills, rules, templates, hooks) into the product repo
 2. Copy `docs/ba/KIT-GUIDE.md` into the product repo
@@ -61,7 +61,7 @@ Run `/prd` at project level only if the Feature Map in `docs/ba/_product/prd.md`
 | CDP backend | `aios-cdp/apps/{product}/` |
 | Backend requests | Product repo `docs/be-quest/` |
 
-Example reference: [`aios-second-brain/docs/ARTIFACT-CHAIN.md`](https://github.com/Automation-Architecture/aios-second-brain/blob/main/docs/ARTIFACT-CHAIN.md)
+Example reference: [`aios-iq-app/docs/ARTIFACT-CHAIN.md`](https://github.com/Automation-Architecture/aios-iq-app/blob/main/docs/ARTIFACT-CHAIN.md)
 
 ---
 
