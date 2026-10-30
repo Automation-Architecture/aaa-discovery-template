@@ -42,8 +42,8 @@ Steps 3–10 are **never skipped** for internal products. The spec quality floor
 
 ## Kickoff checklist — `internal_product`
 
-- Product name (e.g. "AIOS Second Brain")
-- Slug (e.g. `aios-second-brain`)
+- Product name (e.g. "AIOS IQ")
+- Slug (e.g. `aios-iq-app`)
 - GitHub repo URL (`Automation-Architecture/<slug>`)
 - Jira project key (proposed or confirmed)
 - Assigned engineer (name + Slack user ID) — required before step 7
